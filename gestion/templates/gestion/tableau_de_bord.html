@@ -1,0 +1,103 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Tableau de bord - Gestion école</title>
+    <style>
+        body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 0; padding: 0; background: #f5f5f7; }
+        header { background: #1f2937; color: white; padding: 16px 24px; }
+        main { padding: 24px; max-width: 1100px; margin: 0 auto; }
+        h1 { margin: 0 0 4px; font-size: 22px; }
+        h2 { margin-top: 24px; font-size: 18px; }
+        .subtitle { opacity: 0.8; font-size: 13px; }
+        .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-top: 16px; }
+        .card { background: white; border-radius: 12px; padding: 16px 18px; box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06); }
+        .card-title { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: #6b7280; margin-bottom: 8px; }
+        .card-value { font-size: 22px; font-weight: 600; color: #111827; }
+        .card-caption { font-size: 12px; color: #6b7280; margin-top: 4px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 12px; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04); }
+        th, td { padding: 10px 12px; font-size: 13px; }
+        th { background: #f3f4f6; text-align: left; color: #4b5563; }
+        tr:nth-child(even) td { background: #f9fafb; }
+        .chip { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 500; }
+        .chip-danger { background: #fef2f2; color: #b91c1c; }
+        .chip-ok { background: #ecfdf5; color: #166534; }
+        .amount { font-variant-numeric: tabular-nums; }
+        .muted { color: #9ca3af; font-size: 12px; }
+        footer { margin-top: 32px; padding: 16px 0 8px; font-size: 12px; color: #9ca3af; text-align: center; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Tableau de bord - Gestion de l'école</h1>
+        <div class="subtitle">
+            {% if annee %}Année scolaire : <strong>{{ annee }}</strong>{% else %}Aucune année scolaire active. Créez-en une dans l'administration Django.{% endif %}
+        </div>
+    </header>
+    <main>
+        <section class="cards">
+            <article class="card">
+                <div class="card-title">Élèves actifs</div>
+                <div class="card-value">{{ nb_eleves }}</div>
+                <div class="card-caption">Total des élèves pour l'année sélectionnée.</div>
+            </article>
+
+            <article class="card">
+                <div class="card-title">Montant total des frais</div>
+                <div class="card-value amount">{{ total_frais|floatformat:0 }} F</div>
+                <div class="card-caption">Somme des frais définis × nombre d'élèves.</div>
+            </article>
+
+            <article class="card">
+                <div class="card-title">Montant encaissé</div>
+                <div class="card-value amount">{{ total_paye|floatformat:0 }} F</div>
+                <div class="card-caption">Total des paiements enregistrés.</div>
+            </article>
+
+            <article class="card">
+                <div class="card-title">Reste à encaisser</div>
+                <div class="card-value amount">{{ reste_a_payer|floatformat:0 }} F</div>
+                <div class="card-caption">Différence entre les frais et les paiements.</div>
+            </article>
+        </section>
+
+        <section>
+            <h2>Élèves avec solde impayé</h2>
+            {% if not eleves_impayes %}
+                <p class="muted">Tous les élèves ont réglé leurs frais (ou aucun frais n'est encore défini).</p>
+            {% else %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Élève</th>
+                            <th>Classe</th>
+                            <th>Payé</th>
+                            <th>Reste à payer</th>
+                            <th>Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in eleves_impayes %}
+                            <tr>
+                                <td>{{ item.eleve.matricule }} - {{ item.eleve.nom }} {{ item.eleve.prenom }}</td>
+                                <td>{{ item.eleve.classe }}</td>
+                                <td class="amount">{{ item.paye|default:0|floatformat:0 }} F</td>
+                                <td class="amount">{{ item.reste|floatformat:0 }} F</td>
+                                <td>
+                                    <span class="chip chip-danger">Impayé</span>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% endif %}
+        </section>
+
+        <footer>
+            Interface minimale. Tout peut être personnalisé (impression, export PDF, filtres par classe, etc.).
+        </footer>
+    </main>
+</body>
+</html>
+

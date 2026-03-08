@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Bulletin - {{ eleve.matricule }} - {{ semestre.nom }}</title>
+    <style>
+        body { font-family: "Segoe UI", system-ui, -apple-system, sans-serif; margin: 24px; background: #f9fafb; }
+        .bulletin { max-width: 900px; margin: 0 auto; background: white; padding: 24px 32px; border-radius: 12px; box-shadow: 0 8px 30px rgba(15, 23, 42, 0.10); }
+        h1 { font-size: 22px; margin-bottom: 4px; }
+        h2 { font-size: 16px; margin-top: 24px; margin-bottom: 8px; }
+        .muted { color: #6b7280; font-size: 13px; }
+        .header-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-top: 12px; }
+        .box { padding: 10px 12px; border-radius: 10px; background: #f3f4f6; font-size: 13px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 13px; }
+        th, td { border: 1px solid #e5e7eb; padding: 8px 10px; }
+        th { background: #f3f4f6; text-align: left; }
+        .amount { font-variant-numeric: tabular-nums; text-align: right; }
+        .moyenne-global { margin-top: 16px; font-size: 15px; font-weight: 600; }
+        .flex { display: flex; justify-content: space-between; margin-top: 32px; font-size: 13px; }
+        .signature { width: 45%; text-align: center; color: #6b7280; }
+        .signature-line { margin-top: 40px; border-top: 1px solid #d1d5db; margin-inline: 30px; padding-top: 4px; }
+    </style>
+</head>
+<body>
+    <div class="bulletin">
+        <header>
+            <h1>Bulletin de notes</h1>
+            <div class="muted">
+                Année scolaire : {{ semestre.annee_scolaire }} — {{ semestre.nom }}
+            </div>
+        </header>
+
+        <section class="header-grid">
+            <div class="box">
+                <strong>Élève</strong><br>
+                {{ eleve.matricule }} — {{ eleve.nom }} {{ eleve.prenom }}<br>
+                Classe : {{ eleve.classe }}<br>
+                {% if eleve.date_naissance %}Né(e) le : {{ eleve.date_naissance|date:"d/m/Y" }}{% endif %}
+            </div>
+            <div class="box">
+                <strong>Récapitulatif</strong><br>
+                Moyenne générale :
+                {% if moyenne_generale is not None %}
+                    <span class="amount">{{ moyenne_generale|floatformat:2 }}/20</span>
+                {% else %}
+                    <span class="muted">Aucune note saisie</span>
+                {% endif %}
+            </div>
+        </section>
+
+        <section>
+            <h2>Détail par matière</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Matière</th>
+                        <th>Contrôles / Devoirs / Examens</th>
+                        <th class="amount">Moyenne matière /20</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ligne in lignes_bulletin %}
+                        <tr>
+                            <td>{{ ligne.matiere.nom }}</td>
+                            <td>
+                                {% if ligne.notes %}
+                                    {% for note in ligne.notes %}
+                                        {{ note.evaluation.get_type_display }} ({{ note.evaluation.coefficient }}): {{ note.valeur|floatformat:2 }}/20{% if not forloop.last %}, {% endif %}
+                                    {% endfor %}
+                                {% else %}
+                                    <span class="muted">Aucune note</span>
+                                {% endif %}
+                            </td>
+                            <td class="amount">
+                                {% if ligne.moyenne is not None %}
+                                    {{ ligne.moyenne|floatformat:2 }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="moyenne-global">
+                Moyenne générale :
+                {% if moyenne_generale is not None %}
+                    {{ moyenne_generale|floatformat:2 }}/20
+                {% else %}
+                    <span class="muted">Aucune note disponible.</span>
+                {% endif %}
+            </div>
+        </section>
+
+        <section class="flex">
+            <div class="signature">
+                Parents / Tuteur
+                <div class="signature-line"></div>
+            </div>
+            <div class="signature">
+                Chef d'établissement
+                <div class="signature-line"></div>
+            </div>
+        </section>
+    </div>
+</body>
+</html>
+
